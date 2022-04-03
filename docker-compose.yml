@@ -1,0 +1,71 @@
+version: "3"
+
+networks:
+  app_net:
+
+services:
+  nginx:
+    image: "nginx"
+    restart: "always"
+    depends_on:
+      - "frontend"
+      - "go"
+    volumes:
+      - "./config/nginx.conf:/etc/nginx/nginx.conf:ro"
+      - "./log/nginx:/var/log/nginx"
+    ports:
+      - "${PORT}:80"
+    networks:
+      - app_net
+
+  postgres:
+    image: "postgres"
+    restart: "always"
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_DATABASE}
+    volumes:
+      - ./data/pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_net
+    ports:
+      - 5432:5432
+
+  frontend:
+    image: "chenks/collect-homework-frontend:latest"
+    restart: "always"
+    networks:
+      - app_net
+
+  go:
+    image: "chenks/collect-homework-go:latest"
+    restart: "always"
+    depends_on:
+      - "postgres"
+    networks:
+      - app_net
+    volumes:
+      - "./data/homework:/homework"
+      - "./data/tmp/homework:/tmp/homework"
+    environment:
+      - DB_ADDR=postgres:5432
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=80
+      - DB_NETWORK=tcp
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_DEBUG=${DB_DEBUG}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - STORAGE_PATH_PREFIX=/homework
+      - TEMP_PATH_PREFIX=/tmp/homework
+      - SUPER_USER_NAME=${SUPER_USER_NAME}
+      - SUPER_USER_EMAIL=${SUPER_USER_EMAIL}
+      - SUPER_USER_PASSWORD=${SUPER_USER_PASSWORD}

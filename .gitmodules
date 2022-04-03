@@ -1,0 +1,6 @@
+[submodule "extern/collect-homework-go"]
+	path = extern/collect-homework-go
+	url = https://github.com/ChenKS12138/collect-homework-go.git
+[submodule "extern/collect-homework-frontend"]
+	path = extern/collect-homework-frontend
+	url = https://github.com/ChenKS12138/collect-homework-frontend.git

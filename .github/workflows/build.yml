@@ -1,0 +1,46 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Docker Login
+        env:
+          DOCKER_USER: ${{secrets.DOCKER_USER}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - name: Build the Docker image
+        run: docker build --build-arg Version=${{ github.head_ref }}.${{ github.sha }} -f docker/frontend.Dockerfile -t ${{secrets.DOCKER_USER}}/collect-homework-frontend:latest .
+      - name: Docker Push
+        run: docker push ${{secrets.DOCKER_USER}}/collect-homework-frontend:latest
+      - name: Docker Logout
+        run: docker logout
+
+  build-go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Docker Login
+        env:
+          DOCKER_USER: ${{secrets.DOCKER_USER}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - name: Build the Docker image
+        run: docker build --build-arg Version=${{ github.head_ref }}.${{ github.sha }} -f docker/go.Dockerfile -t ${{secrets.DOCKER_USER}}/collect-homework-go:latest .
+      - name: Docker Push
+        run: docker push ${{secrets.DOCKER_USER}}/collect-homework-go:latest
+      - name: Docker Logout
+        run: docker logout
